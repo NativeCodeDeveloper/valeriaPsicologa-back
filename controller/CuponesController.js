@@ -4,8 +4,13 @@ import DataBase from "../config/Database.js";
 
 export default class CuponesController {
 
+
+
 constructor() {
 }
+
+
+
     static async seleccionarCuponCodigo(req, res) {
         try {
             const {codigoVerificadorCupon} = req.body;

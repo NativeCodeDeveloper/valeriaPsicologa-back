@@ -2,7 +2,7 @@ import DataBase from "../config/Database.js";
 
 
 export default class FichaClinica {
-    constructor(id_ficha, id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, estadoFicha, consentimientoFirmado) {
+    constructor(id_ficha, id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, estadoFicha, consentimientoFirmado,id_plantilla, datosDinamicos) {
 
         this.id_ficha = id_ficha;
         this.id_paciente = id_paciente;
@@ -18,6 +18,8 @@ export default class FichaClinica {
         this.fechaConsulta = fechaConsulta;
         this.estadoFicha = estadoFicha;
         this.consentimientoFirmado = consentimientoFirmado;
+        this.id_plantilla = id_plantilla;
+        this.datosDinamicos= datosDinamicos;
     }
 
     // 1. SELECCION DE TODAS LAS FICHAS CLINICAS DE LA BASE DE DATOS
@@ -34,7 +36,7 @@ export default class FichaClinica {
         }
     }
 
-// 2. ELECCION DE LAS FICHAS CLINICAS ESPECIFICAS POR id_paciente
+// 2. SELECCION DE LAS FICHAS CLINICAS ESPECIFICAS POR id_paciente
     async selectFichasPaciente(id_paciente) {
         const conexion = DataBase.getInstance();
         const query = 'SELECT * FROM fichaClinica WHERE id_paciente = ? AND estadoFicha <> 0 ORDER BY fechaConsulta DESC';        const param = [id_paciente]
@@ -65,10 +67,10 @@ export default class FichaClinica {
     }
 
 // 4. ACTUALIZACION DE DATOS DE LA FICHA DE PACIENTES POR POR ID
-    async updateFichaEspecifica(tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado, id_ficha) {
+    async updateFichaEspecifica(tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado,id_plantilla, datosDinamicos, id_ficha) {
         const conexion = DataBase.getInstance();
-        const query = 'UPDATE fichaClinica SET tipoAtencion = ? ,motivoConsulta = ? ,signosVitales = ? ,observaciones = ? ,anotacionConsulta = ? ,anamnesis = ? ,diagnostico = ? ,indicaciones = ? ,archivosAdjuntos = ? ,fechaConsulta = ? ,consentimientoFirmado = ? WHERE id_ficha = ?';
-        const param = [tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado, id_ficha];
+        const query = 'UPDATE fichaClinica SET tipoAtencion = ? ,motivoConsulta = ? ,signosVitales = ? ,observaciones = ? ,anotacionConsulta = ? ,anamnesis = ? ,diagnostico = ? ,indicaciones = ? ,archivosAdjuntos = ? ,fechaConsulta = ? ,consentimientoFirmado = ?,id_plantilla = ?, datosDinamicos = ?  WHERE id_ficha = ?';
+        const param = [tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado,id_plantilla, datosDinamicos, id_ficha];
         try {
             const resultado = await conexion.ejecutarQuery(query, param);
             if (resultado) {
@@ -80,10 +82,10 @@ export default class FichaClinica {
     }
 
 // 5. INSERCION DE NUEVA FICHA POR PACIENTE EN LA BASE DE DATOS
-    async insertarFichaNueva(id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado) {
+    async insertarFichaNueva(id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado,id_plantilla, datosDinamicos) {
         const conexion = DataBase.getInstance();
-        const query = 'INSERT INTO fichaClinica (id_paciente,tipoAtencion,motivoConsulta,signosVitales,observaciones,anotacionConsulta,anamnesis,diagnostico,indicaciones,archivosAdjuntos,fechaConsulta,consentimientoFirmado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?);';
-        const param = [id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado];
+        const query = 'INSERT INTO fichaClinica (id_paciente,tipoAtencion,motivoConsulta,signosVitales,observaciones,anotacionConsulta,anamnesis,diagnostico,indicaciones,archivosAdjuntos,fechaConsulta,consentimientoFirmado,id_plantilla, datosDinamicos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?);';
+        const param = [id_paciente, tipoAtencion, motivoConsulta, signosVitales, observaciones, anotacionConsulta, anamnesis, diagnostico, indicaciones, archivosAdjuntos, fechaConsulta, consentimientoFirmado,id_plantilla, datosDinamicos];
         try {
             const resultado = await conexion.ejecutarQuery(query, param);
             if (resultado) {
@@ -126,6 +128,28 @@ export default class FichaClinica {
             throw new Error('No se puede seleccionar Informacion la ficha clinica / Problema al establecer la conexion con la base de datos desde la clase FichaClinica.js')
         }
     }
+
+
+
+
+
+
+    // 7. SELECCION DE LAS FICHAS CLINICAS ESPECIFICAS POR profesional
+    async seleccionar_similitud_nombre_profesional(observaciones) {
+        const conexion = DataBase.getInstance();
+        const query = 'SELECT * FROM fichaClinica WHERE observaciones LIKE ? AND estadoFicha <> 0 ORDER BY fechaConsulta DESC';
+        const param = [`%${observaciones}%`]
+        try {
+            const resultado = await conexion.ejecutarQuery(query, param);
+            if (resultado) {
+                return resultado;
+            }
+        } catch (error) {
+            throw new Error('No se puede seleccionar Informacion la ficha clinica / Problema al establecer la conexion con la base de datos desde la clase FichaClinica.js')
+        }
+    }
+
+
 
 
 }

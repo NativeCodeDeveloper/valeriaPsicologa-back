@@ -127,27 +127,28 @@ export default class PacienteController {
             } = req.body;
             console.log(req.body)
 
-            if (!nombre || !apellido || !rut || !nacimiento || !sexo || !prevision_id || !telefono || !correo || !direccion || !pais) {
+            if (!nombre || !apellido || !rut || !nacimiento || !sexo || !prevision_id || !telefono || !direccion || !pais) {
                 return res.status(400).json({message : 'Faltan datos obligatorios en el body'})
             }
             const paciente = new Paciente();
             const resultado = await paciente.insertPaciente(nombre,apellido,rut,nacimiento,sexo,prevision_id,telefono,correo,direccion,pais,observacion1,observacion2,observacion3,apoderado,apoderado_rut,medicamentosUsados,habitos,comentariosAdicionales);
-            if (resultado.affectedRows > 0) {
-                res.status(200).json({message: true})
+
+            if(resultado.duplicado === true) {
+                return res.status(200).json({message : 'duplicado'})
+
+            }else if (resultado.affectedRows > 0) {
+                return res.status(200).json({message: true})
+
             }else{
-                res.status(200).json({message: false})
+                return res.status(200).json({message: false})
             }
         } catch (error) {
+            console.error("[PacienteController] Error en insertarPacienteNuevo:", error);
             res.status(500).json({
                 error: "No se ha podido realizar la consulta desde PacienteController"
             });
         }
     }
-
-
-
-
-
 
     static async actualizarPaciente(req, res){
         try {
@@ -173,7 +174,7 @@ export default class PacienteController {
                 id_paciente
             } = req.body;
             console.log(req.body)
-            if (!nombre || !apellido || !rut || !nacimiento || !sexo || !prevision_id || !telefono || !correo || !direccion || !pais || !id_paciente) {
+            if (!nombre || !apellido || !rut || !nacimiento || !sexo || !prevision_id || !telefono || !direccion || !pais || !id_paciente) {
                 return res.status(400).json({message : 'sindato'})
             }
             const paciente = new Paciente();
